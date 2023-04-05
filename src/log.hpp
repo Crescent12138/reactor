@@ -57,7 +57,11 @@ public:
         return *this << tmp;
     }
     MaoLoger &operator <<(const MaoLoger& ){
-       m_buffer_string += "\n";
+        if(_recur_level == 0){
+            _the_cv.notify_all();
+            return *this;
+        }
+        m_buffer_string += "\n";
         for(int i = 0 ;  i< _recur_level -1 ; i ++){
             _m.unlock();
         }
@@ -67,6 +71,7 @@ public:
         _the_cv.notify_all();
         return *this;
     }
+private:
     void write_head(){
         assert(m_level == 1 || m_level == 2);
         if(m_level == 1) m_buffer_string += "[info]->";
@@ -102,22 +107,24 @@ public:
             ::write(this->m_level,
             m_buffer_string.c_str(),
             m_buffer_string.size());
-
+            
             if(this->_stop)break;
-
             m_buffer_string.clear();
             
 
         }
     }
+public:
     ~MaoLoger() {
         if (m_level != 1 && m_level != 2) return;
 
             {
                 std::unique_lock<std::recursive_mutex> lg(_m);
+                *this<<*this;
                 _stop = true;
                 _the_cv.notify_one();
             }
+            
 
         m_thread_ptr->join();
     }
