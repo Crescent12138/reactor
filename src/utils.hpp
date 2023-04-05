@@ -18,6 +18,16 @@ namespace Mao{
         p6 = 14,
         p5,p4,p3,p2,p1,p0
     };
+    /// @brief system error throw with str and code
+    /// @param str text
+    /// @param err error code
+    void throw_system_error(const string&str,int err = 0){
+        if (err == 0) err = errno;
+        throw std::system_error(
+            std::error_code(err,std::system_category()),
+            string(str).append(std::to_string(err))
+        );
+    }
 
 
     /// @brief hash class
@@ -128,16 +138,7 @@ namespace Mao{
         error
     */
    
-   /// @brief system error throw with str and code
-   /// @param str text
-   /// @param err error code
-    void throw_system_error(const string&str,int err = 0){
-        if (err == 0) err = errno;
-        throw std::system_error(
-            std::error_code(err,std::system_category()),
-            string(str).append(std::to_string(err))
-        );
-    }
+   
     void handle_signal(int sig, sig_t handler){
         struct sigaction sigact;
         ::memset(&sigact, 0, sizeof(sigact));
